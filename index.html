@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Defense &amp; Power Screener | Alpha Partners</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=IBM+Plex+Mono:wght@400;700&family=IBM+Plex+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #0a0c0f; font-family: 'IBM Plex Sans', -apple-system, sans-serif; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState } = React;
+
+    const DEFENSE_STOCKS = [
+      {
+        ticker: "LMT", name: "Lockheed Martin", price: "~$676", fwdPE: "~22x", divYield: "2.8%", backlog: "$194B", revGrowth: "~5%",
+        thesis: "Largest defense contractor globally. F-35 lead, PAC-3 missile ramp, $9.8B interceptor contract. Direct beneficiary of Golden Dome & Iran conflict ops. Backlog = 2.5+ yrs of production. Trades at discount to NOC despite more immediate weapons-systems exposure.",
+        catalysts: ["$1.5T proposed FY27 defense budget", "PAC-3 production ramp to 2,000/yr", "F-35 Lots 18-19 (296 jets)", "Iran conflict driving missile demand"],
+        risks: ["Classified program charges ($950M in 2025)", "Executive order restricting buybacks/dividends for defense contractors", "F-35 TR-3 software delays"],
+        category: "Prime", thematic: ["Missile Defense", "Air Superiority", "Golden Dome"], signal: "BUY",
+        signalNote: "Reasonable valuation at 22x fwd, $194B backlog, direct Iran/Middle East exposure"
+      },
+      {
+        ticker: "RTX", name: "RTX Corporation", price: "~$208", fwdPE: "~31x", divYield: "1.7%", backlog: "$218B", revGrowth: "~7%",
+        thesis: "Europe's preferred air defense provider. Patriot system deployed by 19 countries. $50B sustainment contract through 2045. Dual commercial/defense exposure via Pratt & Whitney and Collins Aerospace. Morgan Stanley's top A&D pick.",
+        catalysts: ["European rearmament (NATO 25% digital mandate)", "Patriot contracts: Spain $1.7B, Netherlands $529M, Romania $168M", "$50B Patriot sustainment through 2045", "Commercial aerospace MRO +14% YoY"],
+        risks: ["Higher valuation than LMT at 31x fwd", "Geared Turbofan engine issues (Pratt)", "Executive order on contractor capital allocation"],
+        category: "Prime", thematic: ["European Rearmament", "Missile Defense", "Commercial Aero"], signal: "HOLD/ACCUMULATE",
+        signalNote: "Best-in-class positioning but premium valuation; better on pullbacks"
+      },
+      {
+        ticker: "NOC", name: "Northrop Grumman", price: "~$742", fwdPE: "~26x", divYield: "1.5%", backlog: "$109.8B", revGrowth: "~4.5%",
+        thesis: "Strategic deterrence leader. B-21 Raider stealth bomber + Sentinel ICBM = decades of contracted revenue. Book-to-bill of 2.2x in Q3. Morgan Stanley sees potential for large 2026 awards (B-21, F/A-XX, Golden Dome). 10-yr return of 364%.",
+        catalysts: ["B-21 Raider production acceleration", "Sentinel ICBM modernization", "F/A-XX next-gen fighter", "$13.3B Air Force EMD contract"],
+        risks: ["B-21 loss provision ($477M in 2025)", "Slower organic growth vs peers", "Classified program cost overruns"],
+        category: "Prime", thematic: ["Nuclear Modernization", "Stealth/Air", "Space Systems"], signal: "BUY",
+        signalNote: "Best long-duration backlog in defense; B-21 & Sentinel are multi-decade programs"
+      },
+      {
+        ticker: "LHX", name: "L3Harris Technologies", price: "~$357", fwdPE: "~18x", divYield: "2.0%", backlog: "~$35B", revGrowth: "~7%",
+        thesis: "Only proven on-orbit system for tracking Iran's hypersonic missiles. Electronics, sensors, and ISR focus aligns with the shift from heavy platforms to high-tech internals. $2.2B South Korea contract. Potential Missile Solutions spinoff could unlock value.",
+        catalysts: ["Hypersonic tracking capability (Iran threat)", "$2.2B South Korea contract", "Missile Solutions spinoff potential", "Morgan Stanley OW, $765 PT"],
+        risks: ["Integration complexity post-merger", "Competition from Northrop in space", "Margin pressure on fixed-price contracts"],
+        category: "Prime", thematic: ["ISR/Electronics", "Hypersonics", "Space Defense"], signal: "BUY",
+        signalNote: "Cheapest prime at ~18x fwd PE; hypersonic tracking is a unique asset"
+      },
+      {
+        ticker: "KTOS", name: "Kratos Defense", price: "~$87", fwdPE: "N/M (600x+)", divYield: "0%", backlog: "Growing", revGrowth: "~15-20%",
+        thesis: "Next-gen defense disruptor. Valkyrie autonomous drone, Zeus hypersonic motors, EPOCH satellite C2 software. DoD requesting 300K drones — KTOS scales to 400/yr currently. $1.2B capital raise signals aggressive expansion. High risk / high reward.",
+        catalysts: ["DoD 300K drone request", "Valkyrie USMC collaborative combat aircraft", "Zeus hypersonic motors (L3Harris LOI)", "Golden Dome SHIELD vendor list", "$1.2B capital raise for scaling"],
+        risks: ["Massive valuation (600x+ PE)", "Recent $1.2B dilutive offering at $84", "CEO insider selling $18M", "Execution risk scaling production"],
+        category: "Disruptor", thematic: ["Autonomous Drones", "Hypersonics", "Space Comms"], signal: "SPECULATIVE",
+        signalNote: "Right products, wrong valuation. Watch for pullback below $70 for better entry"
+      },
+      {
+        ticker: "AVAV", name: "AeroVironment", price: "~$220", fwdPE: "~35x", divYield: "0%", backlog: "Growing", revGrowth: ">150% YoY (Q2)",
+        thesis: "Dominant in tactical drones and loitering munitions (Switchblade 600). Combat-proven in Ukraine/Middle East. Revenue growth >150% in Q2 2026. Major Arizona manufacturing expansion. Direct beneficiary of drone warfare doctrine shift.",
+        catalysts: ["Switchblade 600 combat demand", "150%+ revenue growth", "Arizona manufacturing expansion (2027)", "DoD drone procurement acceleration"],
+        risks: ["High valuation at 35x", "Concentration in tactical drones", "Manufacturing scaling timeline"],
+        category: "Disruptor", thematic: ["Tactical Drones", "Loitering Munitions", "Autonomous"], signal: "BUY ON PULLBACK",
+        signalNote: "Incredible growth but priced for perfection; best in a correction"
+      }
+    ];
+
+    const POWER_STOCKS = [
+      {
+        ticker: "GEV", name: "GE Vernova", price: "~$850", fwdPE: "~47x", divYield: "0.2%", backlog: "$150B", revGrowth: "~16% (guide $44-45B)",
+        thesis: "Premier provider of gas turbines and grid equipment at the epicenter of the electrification supercycle. $59B orders in 2025, backlog grew $31B to $150B. Data center electrification orders >$2B (tripled YoY). Ramping gas turbine capacity to 20GW by mid-2026. Acquired Prolec for NA transformer market.",
+        catalysts: ["$1.4T needed for AI data center electrification by 2030", "Gas turbine capacity ramp to 20GW", "Prolec acquisition (transformers)", "Joined S&P 100", "$3.7B FCF in 2025"],
+        risks: ["47x fwd PE is extremely stretched", "Wind division remains a drag", "Policy/permitting delays", "Near all-time highs (~$895 52-wk high)"],
+        category: "Equipment/Grid", thematic: ["Grid Modernization", "Gas Turbines", "Data Center Power"], signal: "HOLD",
+        signalNote: "Best-in-class positioning but valuation fully reflects the thesis. Wait for pullback to $700s"
+      },
+      {
+        ticker: "ETN", name: "Eaton Corporation", price: "~$344", fwdPE: "~32x", divYield: "1.2%", backlog: "200%+ growth (DC)", revGrowth: "~12%",
+        thesis: "Power management leader with direct Nvidia collaboration on 800V DC architecture. Data center orders accelerated ~200% in Q4 2025, sales +40% YoY. Busbar technology replacing traditional cables. Decades of steady returns since 1968 IPO. Highest quality score among power infrastructure names.",
+        catalysts: ["Nvidia 800V DC architecture partnership", "Data center orders +200% Q4", "Grid modernization super-cycle", "11 years of backlog vs 2025 build rate"],
+        risks: ["Premium valuation at 32x", "Broad industrial exposure = cyclical risk", "Trade/tariff sensitivity"],
+        category: "Equipment/Grid", thematic: ["Power Management", "Data Center", "Grid Infrastructure"], signal: "BUY",
+        signalNote: "Quality compounder with best risk-adjusted exposure to electrification theme"
+      },
+      {
+        ticker: "VRT", name: "Vertiv Holdings", price: "~$242", fwdPE: "~47x", divYield: "0.1%", backlog: "~$15B", revGrowth: "~28%",
+        thesis: "Data center cooling and power distribution pure play. Revenue +28% in 2025 to $10.2B. Book-to-bill of 2.9x in Q4. Just added to S&P 500. Organic orders grew 81%. 2026 EPS expected ~$5.14 (+25% YoY). Partnership with Generate for BYOP&C.",
+        catalysts: ["S&P 500 inclusion (March 2026)", "2.9x book-to-bill Q4", "Liquid cooling demand surge", "Generate BYOP&C partnership"],
+        risks: ["47x fwd PE — priced for perfection", "Up 191% in past year", "Execution risk scaling globally", "Consensus PT actually below current price"],
+        category: "Equipment/Grid", thematic: ["Data Center Cooling", "Thermal Management", "Power Distribution"], signal: "HOLD",
+        signalNote: "Phenomenal business but analyst PTs ($217) suggest limited upside from here"
+      },
+      {
+        ticker: "VST", name: "Vistra Corp", price: "~$159", fwdPE: "~16x", divYield: "0.7%", backlog: "Long-term PPAs", revGrowth: "Variable",
+        thesis: "Diversified IPP with natural gas, nuclear, and renewables. Long-term nuclear PPA with Meta. Forward PE of just 16x despite 49% expected earnings growth. Down ~28% from 52-week high of $220. $5.9B EBITDA in 2025. Projecting $10B+ cash generation through 2027.",
+        catalysts: ["Meta nuclear power agreement", "49% expected earnings growth", "Texas data center market (30% US share by 2028)", "$3B buyback + $4B growth capex", "Lotus & Cogentrix acquisitions"],
+        risks: ["Q4 earnings miss (-8.6% EPS, -13.6% rev)", "Cyclical power market exposure", "Iran conflict driving crude >$90 (input costs)", "Weather disruption risk"],
+        category: "Power Generation", thematic: ["Nuclear Power", "Merchant Power", "Data Center PPAs"], signal: "BUY",
+        signalNote: "Best valuation in the power/AI theme at 16x fwd. Down 28% from highs = compelling entry"
+      },
+      {
+        ticker: "CEG", name: "Constellation Energy", price: "~$317", fwdPE: "~30x", divYield: "0.5%", backlog: "Long-term PPAs", revGrowth: "~10%",
+        thesis: "Largest US nuclear fleet providing 24/7 carbon-free baseload power. Data centers require the uptime reliability only nuclear can offer at scale. Down 23%+ from highs in early 2026. Nuclear renaissance thesis intact as hyperscalers compete for carbon-free capacity.",
+        catalysts: ["Largest US nuclear fleet", "Hyperscaler PPA demand", "Nuclear renaissance / SMR optionality", "Regulatory support for nuclear"],
+        risks: ["PE of 30x still not cheap", "NRC regulatory/relicensing risk", "Political risk around nuclear", "Competition from gas and renewables on cost"],
+        category: "Power Generation", thematic: ["Nuclear Power", "Carbon-Free Baseload", "Data Center PPAs"], signal: "ACCUMULATE",
+        signalNote: "Pullback from highs creates opportunity; best pure-play nuclear for AI power demand"
+      },
+      {
+        ticker: "PWR", name: "Quanta Services", price: "~$310", fwdPE: "~25x", divYield: "0.2%", backlog: "Record", revGrowth: "~15%",
+        thesis: "The contractor actually building the grid and data center infrastructure. Record backlog driven by transmission, generation, and electrification capex. Demand driven by data centers, reshoring, EVs, and aging grid. One of the most capital-intensive infrastructure cycles in decades.",
+        catalysts: ["Record backlog", "Grid modernization super-cycle", "Data center construction boom", "IIJA funding through 2026", "Reshoring/onshoring demand"],
+        risks: ["Labor cost inflation", "Project execution risk at scale", "Interest rate sensitivity", "Competition from MasTec, EMCOR"],
+        category: "Infrastructure/Contractor", thematic: ["Grid Construction", "Data Center Build", "Transmission"], signal: "BUY",
+        signalNote: "Irreplaceable asset — someone has to build all this infrastructure. Record backlog = visibility"
+      }
+    ];
+
+    const signalColors = {
+      "BUY": { bg: "rgba(34, 197, 94, 0.15)", border: "#22c55e", text: "#22c55e" },
+      "HOLD": { bg: "rgba(234, 179, 8, 0.15)", border: "#eab308", text: "#eab308" },
+      "HOLD/ACCUMULATE": { bg: "rgba(234, 179, 8, 0.15)", border: "#eab308", text: "#eab308" },
+      "ACCUMULATE": { bg: "rgba(59, 130, 246, 0.15)", border: "#3b82f6", text: "#3b82f6" },
+      "SPECULATIVE": { bg: "rgba(168, 85, 247, 0.15)", border: "#a855f7", text: "#a855f7" },
+      "BUY ON PULLBACK": { bg: "rgba(59, 130, 246, 0.15)", border: "#3b82f6", text: "#3b82f6" },
+    };
+
+    function StockCard({ stock, expanded, onToggle }) {
+      const sc = signalColors[stock.signal] || signalColors["HOLD"];
+      return (
+        <div onClick={onToggle} style={{
+          background: "#111318", border: "1px solid #1e2028", borderRadius: 10,
+          padding: "18px 20px", cursor: "pointer", transition: "all 0.2s", borderLeft: `3px solid ${sc.border}`
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 10 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 18, fontWeight: 700, color: "#f0f0f0" }}>{stock.ticker}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, padding: "3px 8px", borderRadius: 4, background: sc.bg, color: sc.text, border: `1px solid ${sc.border}` }}>{stock.signal}</span>
+                <span style={{ fontSize: 11, color: "#666", fontStyle: "italic" }}>{stock.category}</span>
+              </div>
+              <div style={{ fontSize: 13, color: "#888", marginTop: 2 }}>{stock.name}</div>
+            </div>
+            <div style={{ textAlign: "right" }}>
+              <div style={{ fontFamily: "'IBM Plex Mono', monospace", fontSize: 15, color: "#c9a84c" }}>{stock.price}</div>
+              <div style={{ fontSize: 11, color: "#666" }}>Fwd P/E: {stock.fwdPE}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#777", marginBottom: 8 }}>
+            <span>Div: {stock.divYield}</span>
+            <span>Backlog: {stock.backlog}</span>
+            <span>Rev Growth: {stock.revGrowth}</span>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+            {stock.thematic.map((t, i) => (
+              <span key={i} style={{ fontSize: 9, padding: "2px 6px", borderRadius: 3, background: "rgba(201, 168, 76, 0.1)", color: "#c9a84c", border: "1px solid rgba(201, 168, 76, 0.2)" }}>{t}</span>
+            ))}
+          </div>
+          <div style={{ fontSize: 12, color: sc.text, fontStyle: "italic", lineHeight: 1.4 }}>{stock.signalNote}</div>
+          {expanded && (
+            <div style={{ marginTop: 14, paddingTop: 14, borderTop: "1px solid #1e2028" }}>
+              <div style={{ fontSize: 12, color: "#bbb", lineHeight: 1.6, marginBottom: 12 }}>{stock.thesis}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#22c55e", letterSpacing: 1, marginBottom: 6 }}>CATALYSTS</div>
+                  {stock.catalysts.map((c, i) => (
+                    <div key={i} style={{ fontSize: 11, color: "#888", lineHeight: 1.5, paddingLeft: 8, borderLeft: "2px solid #1a3a1a", marginBottom: 4 }}>{c}</div>
+                  ))}
+                </div>
+                <div>
+                  <div style={{ fontSize: 10, fontWeight: 700, color: "#ef4444", letterSpacing: 1, marginBottom: 6 }}>RISKS</div>
+                  {stock.risks.map((r, i) => (
+                    <div key={i} style={{ fontSize: 11, color: "#888", lineHeight: 1.5, paddingLeft: 8, borderLeft: "2px solid #3a1a1a", marginBottom: 4 }}>{r}</div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    function ThematicMatrix({ stocks, title }) {
+      const themes = [...new Set(stocks.flatMap(s => s.thematic))].sort();
+      return (
+        <div style={{ marginTop: 20, overflow: "auto" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#c9a84c", marginBottom: 8, letterSpacing: 1 }}>{title} — THEMATIC EXPOSURE</div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
+            <thead>
+              <tr>
+                <th style={{ textAlign: "left", padding: "6px 8px", borderBottom: "1px solid #1e2028", color: "#666" }}>Theme</th>
+                {stocks.map(s => (
+                  <th key={s.ticker} style={{ padding: "6px 4px", borderBottom: "1px solid #1e2028", color: "#888", fontFamily: "'IBM Plex Mono', monospace", fontSize: 10 }}>{s.ticker}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {themes.map(theme => (
+                <tr key={theme}>
+                  <td style={{ padding: "4px 8px", borderBottom: "1px solid #0d0f12", color: "#777", fontSize: 10 }}>{theme}</td>
+                  {stocks.map(s => (
+                    <td key={s.ticker} style={{ padding: "4px 4px", borderBottom: "1px solid #0d0f12", textAlign: "center" }}>
+                      {s.thematic.includes(theme) ? <span style={{ color: "#c9a84c", fontSize: 14 }}>●</span> : <span style={{ color: "#1e2028" }}>—</span>}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    function App() {
+      const [tab, setTab] = useState("defense");
+      const [expanded, setExpanded] = useState(null);
+      const [filterSignal, setFilterSignal] = useState("ALL");
+
+      const stocks = tab === "defense" ? DEFENSE_STOCKS : POWER_STOCKS;
+      const filtered = filterSignal === "ALL" ? stocks : stocks.filter(s => s.signal === filterSignal);
+      const signals = ["ALL", ...new Set(stocks.map(s => s.signal))];
+
+      return (
+        <div style={{ background: "#0a0c0f", minHeight: "100vh", color: "#f0f0f0", fontFamily: "'IBM Plex Sans', -apple-system, sans-serif", padding: "24px 20px" }}>
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
+              <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, fontWeight: 700, color: "#c9a84c" }}>SECTOR SCREENER</span>
+              <span style={{ fontSize: 10, color: "#444", letterSpacing: 2, fontWeight: 700, marginTop: 4 }}>UBS | ALPHA PARTNERS</span>
+            </div>
+            <div style={{ fontSize: 11, color: "#555" }}>Defense &amp; Power/Electrification · Fundamentals + Thematic + Positioning · March 10, 2026</div>
+          </div>
+
+          <div style={{ display: "flex", gap: 0, marginBottom: 16 }}>
+            {[{ key: "defense", label: "DEFENSE", icon: "🛡️" }, { key: "power", label: "POWER / ELECTRIFICATION", icon: "⚡" }].map(t => (
+              <button key={t.key} onClick={() => { setTab(t.key); setExpanded(null); setFilterSignal("ALL"); }} style={{
+                padding: "10px 20px", background: tab === t.key ? "#1a1d24" : "transparent", color: tab === t.key ? "#c9a84c" : "#555",
+                border: "1px solid", borderColor: tab === t.key ? "#c9a84c" : "#1e2028",
+                borderRadius: t.key === "defense" ? "6px 0 0 6px" : "0 6px 6px 0", cursor: "pointer", fontSize: 11, fontWeight: 700, letterSpacing: 1.5, fontFamily: "'IBM Plex Mono', monospace", transition: "all 0.2s"
+              }}>{t.icon} {t.label}</button>
+            ))}
+          </div>
+
+          <div style={{ background: "rgba(201, 168, 76, 0.05)", border: "1px solid rgba(201, 168, 76, 0.15)", borderRadius: 8, padding: "14px 16px", marginBottom: 16, fontSize: 11, color: "#999", lineHeight: 1.6 }}>
+            {tab === "defense" ? (
+              <span><span style={{ color: "#c9a84c", fontWeight: 700 }}>MACRO BACKDROP:</span> FY26 defense budget ~$962B (+13.4% YoY). Proposed FY27 at ~$1.5T. Global defense spending projected at $2.6T in 2026 (+8.1%). Operation Epic Fury (Iran strikes) driving acute missile/air defense demand. Executive order ties contractor compensation to delivery performance, restricts buybacks. European rearmament accelerating — NATO mandating 25% of procurement toward digital/autonomous. Golden Dome missile shield baseline cost ~$175B.</span>
+            ) : (
+              <span><span style={{ color: "#c9a84c", fontWeight: 700 }}>MACRO BACKDROP:</span> $1.4T needed for AI data center electrification by 2030. ~70% of US grid approaching end of life cycle. US electricity demand projected +17% by 2030 (up to +25% with full DC buildout). Data centers to consume 10% of US power by 2030 (from 4%). ELFY electrification ETF +14% YTD vs SPX -2%. Crude above $90 amid Iran conflict — input cost headwind for gas generation. Hyperscalers competing for grid capacity; utilities locking in long-term PPAs.</span>
+            )}
+          </div>
+
+          <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+            {signals.map(s => {
+              const sc = s === "ALL" ? { bg: "#1a1d24", border: "#333", text: "#888" } : (signalColors[s] || signalColors["HOLD"]);
+              return (
+                <button key={s} onClick={() => setFilterSignal(s)} style={{
+                  padding: "4px 10px", fontSize: 9, fontWeight: 700, letterSpacing: 1, borderRadius: 4, cursor: "pointer",
+                  background: filterSignal === s ? sc.bg : "transparent", color: filterSignal === s ? sc.text : "#444",
+                  border: `1px solid ${filterSignal === s ? sc.border : "#1e2028"}`, fontFamily: "'IBM Plex Mono', monospace", transition: "all 0.15s"
+                }}>{s}</button>
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {filtered.map(s => (
+              <StockCard key={s.ticker} stock={s} expanded={expanded === s.ticker} onToggle={() => setExpanded(expanded === s.ticker ? null : s.ticker)} />
+            ))}
+          </div>
+
+          <ThematicMatrix stocks={stocks} title={tab === "defense" ? "DEFENSE" : "POWER"} />
+
+          <div style={{ marginTop: 24, padding: "16px 18px", background: "#111318", border: "1px solid #1e2028", borderRadius: 8 }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "#c9a84c", marginBottom: 8, letterSpacing: 1 }}>
+              {tab === "defense" ? "DEFENSE PLAYBOOK" : "POWER PLAYBOOK"}
+            </div>
+            {tab === "defense" ? (
+              <div style={{ fontSize: 12, color: "#999", lineHeight: 1.7 }}>
+                <p style={{ margin: "0 0 8px" }}><span style={{ color: "#22c55e", fontWeight: 700 }}>Core positions:</span> LMT + LHX offer the best combination of valuation support and direct catalyst exposure. LHX at ~18x is the cheapest prime with unique hypersonic tracking assets. LMT at ~22x with a $194B backlog is the most direct Iran/missile play.</p>
+                <p style={{ margin: "0 0 8px" }}><span style={{ color: "#3b82f6", fontWeight: 700 }}>Complement:</span> NOC for nuclear modernization duration. RTX on pullbacks for European rearmament + commercial aero dual exposure.</p>
+                <p style={{ margin: "0" }}><span style={{ color: "#a855f7", fontWeight: 700 }}>Satellite / Spec:</span> KTOS and AVAV have the right products for the new warfare doctrine but valuations require patience. Size positions accordingly or use pullbacks.</p>
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: "#999", lineHeight: 1.7 }}>
+                <p style={{ margin: "0 0 8px" }}><span style={{ color: "#22c55e", fontWeight: 700 }}>Best risk/reward:</span> VST at ~16x fwd PE with 49% earnings growth expected. Down 28% from highs. Meta nuclear PPA provides visibility. ETN is the highest-quality compounder with Nvidia partnership and massive DC order acceleration.</p>
+                <p style={{ margin: "0 0 8px" }}><span style={{ color: "#3b82f6", fontWeight: 700 }}>Builders:</span> PWR (Quanta) is irreplaceable — someone has to construct all this infrastructure. Record backlog + multi-year cycle = visibility.</p>
+                <p style={{ margin: "0" }}><span style={{ color: "#eab308", fontWeight: 700 }}>Watch for pullback:</span> GEV and VRT are exceptional businesses trading at 47x+ fwd. The thesis is right but the entry matters. GEV below $700 or VRT below $180 would be more compelling.</p>
+              </div>
+            )}
+          </div>
+
+          <div style={{ marginTop: 20, fontSize: 9, color: "#333", textAlign: "center", lineHeight: 1.5 }}>
+            FOR INFORMATIONAL PURPOSES ONLY — NOT INVESTMENT ADVICE · PRICES APPROXIMATE AS OF MARCH 10, 2026 · CONDUCT YOUR OWN DUE DILIGENCE
+          </div>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>
